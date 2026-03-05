@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "avalanche-drone-sim"
+version = "0.1.0"
+description = "JAX-native multi-agent avalanche search and rescue simulator"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jax[cpu]>=0.4.30",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = [
+    "matplotlib>=3.9",
+    "pytest>=8.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
