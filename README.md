@@ -9,7 +9,7 @@ JAX-native multi-agent avalanche search-and-rescue environment with a simplified
 - Procedural alpine terrain and avalanche debris generation
 - Probabilistic victim detection, local communications, and aid delivery
 - Scripted and random baseline policies
-- Headless confirmation visualization for fast manual checks
+- Headless confirmation visualization for fast manual checks, including animated rollouts
 
 ## Setup
 
@@ -45,10 +45,16 @@ uv run pytest
 
 ## Final Confirmation Check
 
-Run a short simulation and write a quick top-down plot:
+Run a short simulation and write an animated top-down rollout:
+
+```bash
+uv run python scripts/final_check.py --steps 30 --output artifacts/final-check.gif
+```
+
+The GIF shows terrain, debris, scanned cells, drones, victim states, and the current timestep so you can confirm temporal progression instead of only the final frame.
+
+If you only want the last frame, use a `.png` output path:
 
 ```bash
 uv run python scripts/final_check.py --steps 30 --output artifacts/final-check.png
 ```
-
-The image marks terrain, debris, scanned cells, drones, and victim states so you can confirm the sim is stepping and updating state coherently.

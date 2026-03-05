@@ -8,19 +8,16 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from PIL import Image
 
 from .types import EnvConfig, EnvState
 
 
-def save_overview(
+def _render_frame(
     config: EnvConfig,
     state: EnvState,
-    output_path: str | Path,
-    title: str = "Avalanche Drone Simulation",
-) -> Path:
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-
+    title: str,
+) -> Image.Image:
     fig, ax = plt.subplots(figsize=(9, 6), constrained_layout=True)
     ax.imshow(
         state.terrain_height,
@@ -61,6 +58,56 @@ def save_overview(
     )
     ax.legend(loc="upper right")
 
-    fig.savefig(output, dpi=140)
+    fig.canvas.draw()
+    width, height = fig.canvas.get_width_height()
+    image = Image.frombuffer(
+        "RGBA",
+        (width, height),
+        fig.canvas.buffer_rgba(),
+        "raw",
+        "RGBA",
+        0,
+        1,
+    ).copy()
     plt.close(fig)
+    return image
+
+
+def save_overview(
+    config: EnvConfig,
+    state: EnvState,
+    output_path: str | Path,
+    title: str = "Avalanche Drone Simulation",
+) -> Path:
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    image = _render_frame(config, state, title)
+    image.save(output)
+    return output
+
+
+def save_rollout_gif(
+    config: EnvConfig,
+    states: list[EnvState],
+    output_path: str | Path,
+    title: str = "Avalanche Drone Simulation",
+    fps: int = 5,
+) -> Path:
+    if not states:
+        raise ValueError("states must contain at least one frame")
+
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    frame_ms = max(40, int(1000 / max(1, fps)))
+    frames = [_render_frame(config, state, title).convert("P", palette=Image.Palette.ADAPTIVE) for state in states]
+    frames[0].save(
+        output,
+        save_all=True,
+        append_images=frames[1:],
+        duration=frame_ms,
+        loop=0,
+        optimize=False,
+    )
     return output
