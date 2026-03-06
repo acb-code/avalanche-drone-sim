@@ -6,7 +6,7 @@ from pathlib import Path
 import jax
 import jax.numpy as jnp
 
-from avalanche_sim import EnvConfig, make_env
+from avalanche_sim import EnvConfig, export_rollout_data, make_env, save_interactive_rollout
 from avalanche_sim.policies import lawnmower_policy
 from avalanche_sim.visualization import save_overview, save_rollout_gif
 
@@ -25,8 +25,13 @@ def run(seed: int, steps: int, output: Path) -> Path:
         if bool(jnp.all(dones)):
             break
 
-    if output.suffix.lower() == ".gif":
+    suffix = output.suffix.lower()
+    if suffix == ".gif":
         return save_rollout_gif(env.config, states, output)
+    if suffix == ".html":
+        return save_interactive_rollout(env.config, states, output)
+    if suffix == ".json":
+        return export_rollout_data(env.config, states, output)
     return save_overview(env.config, state, output)
 
 

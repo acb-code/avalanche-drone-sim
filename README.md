@@ -10,6 +10,8 @@ JAX-native multi-agent avalanche search-and-rescue environment with a simplified
 - Probabilistic victim detection, local communications, and aid delivery
 - Scripted and random baseline policies
 - Headless confirmation visualization for fast manual checks, including animated rollouts
+- Interactive browser-based 3D rollout viewer with playback controls
+- Pluggable capability modules for movement, sensing, communication, and aid delivery
 
 ## Setup
 
@@ -57,4 +59,30 @@ If you only want the last frame, use a `.png` output path:
 
 ```bash
 uv run python scripts/final_check.py --steps 30 --output artifacts/final-check.png
+```
+
+For the interactive 3D viewer, write an `.html` output:
+
+```bash
+uv run python scripts/final_check.py --steps 30 --output artifacts/final-check.html
+```
+
+If you want the raw rollout payload for other tooling, write a `.json` output:
+
+```bash
+uv run python scripts/final_check.py --steps 30 --output artifacts/final-check.json
+```
+
+## Modular Capabilities
+
+The environment still defaults to the built-in drone behavior, but you can swap capability models independently:
+
+```python
+from dataclasses import replace
+
+from avalanche_sim import EnvConfig, make_env
+from avalanche_sim.capabilities import ProbabilisticSensingModel, default_capabilities
+
+capabilities = replace(default_capabilities(), sensing=ProbabilisticSensingModel())
+env = make_env(EnvConfig(), capabilities=capabilities)
 ```

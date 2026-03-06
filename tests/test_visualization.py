@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
+
 import jax
 import jax.numpy as jnp
 
 from avalanche_sim import EnvConfig, make_env
+from avalanche_sim.viewer import export_rollout_data, save_interactive_rollout
 from avalanche_sim.visualization import save_overview, save_rollout_gif
 
 
@@ -34,3 +37,25 @@ def test_save_rollout_gif_writes_gif(tmp_path) -> None:
 
     assert output.exists()
     assert output.stat().st_size > 0
+
+
+def test_export_rollout_data_writes_json(tmp_path) -> None:
+    env = make_env(EnvConfig())
+    _, state = env.reset(jax.random.PRNGKey(7))
+    output = export_rollout_data(env.config, [state], tmp_path / "rollout.json")
+
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["config"]["num_drones"] == env.config.num_drones
+    assert len(payload["frames"]) == 1
+
+
+def test_save_interactive_rollout_writes_html(tmp_path) -> None:
+    env = make_env(EnvConfig())
+    _, state = env.reset(jax.random.PRNGKey(8))
+    output = save_interactive_rollout(env.config, [state], tmp_path / "rollout.html")
+
+    html = output.read_text(encoding="utf-8")
+    assert output.exists()
+    assert "Interactive 3D playback" in html
+    assert "const payload =" in html
+    assert "Sensor cone" in html
