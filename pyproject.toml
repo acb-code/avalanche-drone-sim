@@ -4,19 +4,47 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "avalanche-drone-sim"
-version = "0.1.0"
-description = "JAX-native multi-agent avalanche search and rescue simulator"
+version = "0.2.0"
+description = "MuJoCo/MJX-backed multi-agent avalanche search-and-rescue simulator"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "gymnasium>=0.29",
     "jax[cpu]>=0.4.30",
+    "mujoco>=3.5.0",
     "numpy>=1.26",
+    "pettingzoo>=1.24",
 ]
 
 [project.optional-dependencies]
+# Core MuJoCo (CPU physics + viewer)
+mujoco = [
+    "mujoco>=3.1",
+]
+# MJX GPU batching (requires CUDA)
+mjx = [
+    "mujoco>=3.1",
+    "mujoco-mjx>=3.1",
+    "jax[cuda12]>=0.4.30",
+]
+# RL/MARL wrappers
+rl = [
+    "gymnasium>=0.29",
+    "pettingzoo>=1.24",
+    "stable-baselines3>=2.3",
+]
+# Development / testing
 dev = [
+    "mujoco>=3.1",
+    "gymnasium>=0.29",
+    "pettingzoo>=1.24",
     "matplotlib>=3.9",
     "pytest>=8.0",
+    "Pillow>=10.0",
+]
+# Everything
+all = [
+    "avalanche-drone-sim[mujoco,rl,dev]",
 ]
 
 [tool.setuptools]
@@ -24,6 +52,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+avalanche_mujoco = ["models/*.xml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

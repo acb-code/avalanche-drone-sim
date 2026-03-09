@@ -1,0 +1,78 @@
+<!--
+  Minimal SAR quadrotor model (Skydio X2-class, ~1.7 kg)
+  X-configuration, arm length 0.175 m (tip to centre).
+
+  Rotor naming and rotation direction (viewed from above):
+    FR (+x, -y): CW  → yaw_torque = -k·T
+    FL (+x, +y): CCW → yaw_torque = +k·T
+    RR (-x, -y): CCW → yaw_torque = +k·T
+    RL (-x, +y): CW  → yaw_torque = -k·T
+
+  Actuator ctrl units: Newtons [0, 10].
+  At hover: each rotor ≈ 1.7·9.81/4 ≈ 4.17 N.
+
+  When composing N-drone scenes, drone.py prefixes every named
+  element with "droneN/" and adjusts initial position.
+-->
+<mujoco model="sar_drone">
+  <compiler angle="radian" autolimits="true"/>
+
+  <option timestep="0.005" gravity="0 0 -9.81" integrator="RK4"/>
+
+  <default>
+    <motor ctrlrange="0 10" ctrllimited="true"/>
+    <geom contype="0" conaffinity="0"/>
+  </default>
+
+  <worldbody>
+    <body name="drone" pos="0 0 1">
+      <freejoint name="root"/>
+      <!--
+        Inertia: approximate values for a 1.7 kg carbon-fibre frame.
+        Ixx, Iyy slightly asymmetric; Izz larger due to arm spread.
+      -->
+      <inertial mass="1.7" pos="0 0 0" diaginertia="0.0082 0.0094 0.0155"/>
+
+      <!-- Central body -->
+      <geom name="body" type="box" size="0.10 0.10 0.035" rgba="0.15 0.15 0.45 1"/>
+
+      <!-- Arms (visual only) -->
+      <geom name="arm1" type="capsule"
+            fromto="-0.175 -0.175 0.01  0.175  0.175 0.01"
+            size="0.011" rgba="0.4 0.4 0.4 1"/>
+      <geom name="arm2" type="capsule"
+            fromto="-0.175  0.175 0.01  0.175 -0.175 0.01"
+            size="0.011" rgba="0.4 0.4 0.4 1"/>
+
+      <!-- Motor mounts -->
+      <geom name="mount_fr" type="cylinder" pos=" 0.175 -0.175 0.018" size="0.022 0.012" rgba="0.6 0.6 0.6 1"/>
+      <geom name="mount_fl" type="cylinder" pos=" 0.175  0.175 0.018" size="0.022 0.012" rgba="0.6 0.6 0.6 1"/>
+      <geom name="mount_rr" type="cylinder" pos="-0.175 -0.175 0.018" size="0.022 0.012" rgba="0.6 0.6 0.6 1"/>
+      <geom name="mount_rl" type="cylinder" pos="-0.175  0.175 0.018" size="0.022 0.012" rgba="0.6 0.6 0.6 1"/>
+
+      <!-- Propeller discs (visual) -->
+      <geom name="prop_fr" type="cylinder" pos=" 0.175 -0.175 0.030" size="0.088 0.003" rgba="0.85 0.20 0.20 0.7"/>
+      <geom name="prop_fl" type="cylinder" pos=" 0.175  0.175 0.030" size="0.088 0.003" rgba="0.20 0.75 0.20 0.7"/>
+      <geom name="prop_rr" type="cylinder" pos="-0.175 -0.175 0.030" size="0.088 0.003" rgba="0.20 0.20 0.85 0.7"/>
+      <geom name="prop_rl" type="cylinder" pos="-0.175  0.175 0.030" size="0.088 0.003" rgba="0.85 0.75 0.10 0.7"/>
+
+      <!-- Rotor thrust sites — gear applies force in site's +Z direction. -->
+      <!-- Reactive yaw torque via gear[5]: CW=-k, CCW=+k, k=0.016 Nm/N -->
+      <site name="rotor_fr" pos=" 0.175 -0.175 0.030"/>
+      <site name="rotor_fl" pos=" 0.175  0.175 0.030"/>
+      <site name="rotor_rr" pos="-0.175 -0.175 0.030"/>
+      <site name="rotor_rl" pos="-0.175  0.175 0.030"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- FR: CW  → gear[5] = -0.016 -->
+    <motor name="motor_fr" site="rotor_fr" gear="0 0 1 0 0 -0.016"/>
+    <!-- FL: CCW → gear[5] = +0.016 -->
+    <motor name="motor_fl" site="rotor_fl" gear="0 0 1 0 0  0.016"/>
+    <!-- RR: CCW → gear[5] = +0.016 -->
+    <motor name="motor_rr" site="rotor_rr" gear="0 0 1 0 0  0.016"/>
+    <!-- RL: CW  → gear[5] = -0.016 -->
+    <motor name="motor_rl" site="rotor_rl" gear="0 0 1 0 0 -0.016"/>
+  </actuator>
+</mujoco>
